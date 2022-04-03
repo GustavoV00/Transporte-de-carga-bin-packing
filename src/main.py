@@ -35,17 +35,35 @@ def creatingObjectFunction(c, total):
         c.append(1)
 
 
-def subjectToLeftSide(n, linearProg, weights):
+def subjectTo(n, linearProg, weights, capacity):
 
     aux = []
     for _ in range(n):
-        for j in range(n):
-            aux.append(weights[j])
+        linearProg["restrictions1"]["leftSide"].append(weights)
+        linearProg["restrictions1"]["rightSide"].append(capacity)
+        aux.append(1)
     
-        print("aux: ", aux)
-        linearProg["restrictions"]["leftSide"].append(aux)
-        linearProg["restrictions"]["rightSide"].append(10)
-        aux.clear()
+    for _ in range(n):
+        linearProg["restrictions2"]["leftSide"].append(aux)
+        linearProg["restrictions2"]["rightSide"].append(1)
+        
+
+
+def lessBound(n, restrictions):
+
+    A_ub = []
+    while(n < len(restrictions)):
+        A_ub.append(restrictions[n])
+        n += 1
+    
+    return A_ub
+
+def bounds(n):
+    bounds = []
+    for _ in range(n):
+        bounds.append((0, 1))
+        
+    return bounds
 
 def main():
     dictInput = {
@@ -56,15 +74,19 @@ def main():
 
     linearProg = {
         "min": [],
-        "restrictions": {
+        "restrictions1": {
             "leftSide": [],
             "rightSide": [],
-        }
+        },
+        "restrictions2": {
+            "leftSide": [],
+            "rightSide": [],
+        },
     }
 
     leInputs(dictInput)
-    print("DictInput: ", dictInput)
-    print("\n")
+    # print("DictInput: ", dictInput)
+    # print("\n")
 
     # y_i -> Pacote i
     totalBins = dictInput["firstLine"][0]
@@ -72,8 +94,26 @@ def main():
 
     creatingObjectFunction(linearProg["min"], totalBins)
 
-    subjectToLeftSide(totalBins, linearProg, dictInput["weights"])
-    print("LinearProg: ", linearProg)
+    capacity = dictInput["firstLine"][2]
+    subjectTo(totalBins, linearProg, dictInput["weights"], capacity)
+    # print("LinearProg: ", linearProg)
+
+    c = np.array(linearProg["min"])
+    A_ub = linearProg["restrictions1"]["leftSide"]
+    b_ub = linearProg["restrictions1"]["rightSide"]
+
+    A_eq = linearProg["restrictions2"]["leftSide"]
+    b_eq = linearProg["restrictions2"]["rightSide"]
+
+
+    bd = bounds(totalBins)
+    print(c, "\n")
+    print(A_ub, " <= ", b_ub, "\n")
+    print(A_eq, " = ", b_eq, "\n")
+    print(bd, "\n")
+
+    res = linprog(c, A_ub=A_ub, b_ub=b_ub, A_eq=A_eq, b_eq=b_eq, bounds=(bd))
+    print(res, "\n")
 
 
 if __name__ == "__main__":
