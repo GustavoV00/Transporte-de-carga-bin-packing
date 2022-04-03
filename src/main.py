@@ -1,13 +1,15 @@
 from scipy.optimize import linprog
+from ortools.linear_solver import pywraplp
 import numpy as np
 import sys
+
 
 def addDependencesToDict(dependences, inputs):
 
     i = 0
     while(i < len(dependences)):
         item = (dependences[i], dependences[i+1])    
-        inputs["conditions"].append(item)
+        inputs["ordered_pairs"].append(item)
         i += 2
 
 def leInputs(inputs):
@@ -30,91 +32,63 @@ def leInputs(inputs):
     addDependencesToDict(dependences, inputs)
     return inputs
 
-def creatingObjectFunction(c, total):
-    for _ in range(total):
-        c.append(1)
-
-
-def subjectTo(n, linearProg, weights, capacity):
-
-    aux = []
-    for _ in range(n):
-        linearProg["restrictions1"]["leftSide"].append(weights)
-        linearProg["restrictions1"]["rightSide"].append(capacity)
-        aux.append(1)
-    
-    for _ in range(n):
-        linearProg["restrictions2"]["leftSide"].append(aux)
-        linearProg["restrictions2"]["rightSide"].append(1)
-        
-
-
-def lessBound(n, restrictions):
-
-    A_ub = []
-    while(n < len(restrictions)):
-        A_ub.append(restrictions[n])
-        n += 1
-    
-    return A_ub
-
-def bounds(n):
-    bounds = []
-    for _ in range(n):
-        bounds.append((0, 1))
-        
-    return bounds
-
-def main():
+def create_model():
+    data = {}
     dictInput = {
         "firstLine": [],
         "weights": [],
-        "conditions": [],
-    }
-
-    linearProg = {
-        "min": [],
-        "restrictions1": {
-            "leftSide": [],
-            "rightSide": [],
-        },
-        "restrictions2": {
-            "leftSide": [],
-            "rightSide": [],
-        },
+        "ordered_pairs": [],
     }
 
     leInputs(dictInput)
-    # print("DictInput: ", dictInput)
-    # print("\n")
+    # print(dictInput)
 
-    # y_i -> Pacote i
-    totalBins = dictInput["firstLine"][0]
-    # print(totalBins)
+    data["weights"] = dictInput["weights"]
+    data["items"] = list(range(len(dictInput["weights"])))
+    data["bins"] = data["items"]
+    data["ordered_pairs"] = dictInput["ordered_pairs"]
+    data["bin_capacity"] = 10
 
-    creatingObjectFunction(linearProg["min"], totalBins)
-
-    capacity = dictInput["firstLine"][2]
-    subjectTo(totalBins, linearProg, dictInput["weights"], capacity)
-    # print("LinearProg: ", linearProg)
-
-    c = np.array(linearProg["min"])
-    A_ub = linearProg["restrictions1"]["leftSide"]
-    b_ub = linearProg["restrictions1"]["rightSide"]
-
-    A_eq = linearProg["restrictions2"]["leftSide"]
-    b_eq = linearProg["restrictions2"]["rightSide"]
+    return data;
 
 
-    bd = bounds(totalBins)
-    print(c, "\n")
-    print(A_ub, " <= ", b_ub, "\n")
-    print(A_eq, " = ", b_eq, "\n")
-    print(bd, "\n")
+def main():
+    data = create_model()
+    print(data, "\n\n")
 
-    res = linprog(c, A_ub=A_ub, b_ub=b_ub, A_eq=A_eq, b_eq=b_eq, bounds=(bd))
-    print(res, "\n")
+    # Create the mip solver with the SCIP backend.
+    solver = pywraplp.Solver.CreateSolver('GLOP')
 
+    # Variables
+    # x[i, j] = 1 if item i is packed in bin j.
+    x = {}
+    for i in data['items']:
+        for j in data['bins']:
+            x[(i, j)] = solver.NumVar(0.0, 1.0, 'x_%i_%i' % (i, j))
+
+    # y[j] = 1 if bin j is used.
+    y = {}
+    for j in data['bins']:
+        y[j] = solver.NumVar(0.0, 1.0, 'y[%i]' % j)
+
+    # Constraints
+    # Each item must be in exactly one bin.
+    for i in data['items']:
+        solver.Add(sum(x[i, j] for j in data['bins']) == 1)
+
+    # The amount packed in each bin cannot exceed its capacity.
+    for j in data['bins']:
+        solver.Add(
+            sum(x[(i, j)] * data['weights'][i] for i in data['items']) <= y[j] * data['bin_capacity']
+        )
+
+    # Objective: minimize the number of bins used.
+    solver.Minimize(solver.Sum([y[j] for j in data['bins']]))
+
+    status = solver.Solve()
+    print("Object value = ", solver.Objective().Value())
+    print('Number of variables =', solver.NumVariables())
+    print('Number of constraints =', solver.NumConstraints())
 
 if __name__ == "__main__":
     main()
