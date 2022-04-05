@@ -40,13 +40,13 @@ def subjectTo(n, linearProg, weights, capacity):
     aux = []
     weights.append(-capacity)
     for _ in range(n+1):
+        linearProg["restrictions1"]["leftSide"].append(weights)
+        linearProg["restrictions1"]["rightSide"].append(0)
         aux.append(1)
-    linearProg["restrictions1"]["leftSide"].append(weights)
-    linearProg["restrictions1"]["rightSide"].append(0)
     
-    # for _ in range(n+1):
-    linearProg["restrictions1"]["leftSide"].append(aux)
-    linearProg["restrictions1"]["rightSide"].append(1)
+    for _ in range(n+1):
+        linearProg["restrictions1"]["leftSide"].append(aux)
+        linearProg["restrictions1"]["rightSide"].append(1)
         
 
 
@@ -110,10 +110,21 @@ def main():
     print(bd, "\n")
 
     # res = linprog(c, A_ub=A_ub, b_ub=b_ub, A_eq=A_eq, b_eq=b_eq, bounds=(bd))
-    res = linprog(c, A_eq=A_eq, b_eq=b_eq, bounds=(bd))
+    res = linprog(c, A_eq=A_eq, b_eq=b_eq, bounds=(bd), method="revised simplex")
     print(res.fun, "\n")
     print(res.success, "\n")
+
+    sum = 0
     print(res.x, "\n")
+    i = 0
+    sum = 0
+    for x in res.x:
+        test = x * dictInput["weights"][i]
+        print(test)
+        sum += test
+        i += 1
+
+    print("Rest: ", sum)
 
 
 if __name__ == "__main__":
