@@ -38,14 +38,15 @@ def creatingObjectFunction(c, total):
 def subjectTo(n, linearProg, weights, capacity):
 
     aux = []
-    for _ in range(n):
-        linearProg["restrictions1"]["leftSide"].append(weights)
-        linearProg["restrictions1"]["rightSide"].append(capacity)
+    weights.append(-capacity)
+    for _ in range(n+1):
         aux.append(1)
+    linearProg["restrictions1"]["leftSide"].append(weights)
+    linearProg["restrictions1"]["rightSide"].append(0)
     
-    for _ in range(n):
-        linearProg["restrictions2"]["leftSide"].append(aux)
-        linearProg["restrictions2"]["rightSide"].append(1)
+    # for _ in range(n+1):
+    linearProg["restrictions1"]["leftSide"].append(aux)
+    linearProg["restrictions1"]["rightSide"].append(1)
         
 
 
@@ -61,7 +62,7 @@ def lessBound(n, restrictions):
 def bounds(n):
     bounds = []
     for _ in range(n):
-        bounds.append((0, 1))
+        bounds.append((0.0, 1.0))
         
     return bounds
 
@@ -85,6 +86,7 @@ def main():
     }
 
     leInputs(dictInput)
+    # weights = -dictInput["firstLine"][2]
     # print("DictInput: ", dictInput)
     # print("\n")
 
@@ -92,28 +94,26 @@ def main():
     totalBins = dictInput["firstLine"][0]
     # print(totalBins)
 
-    creatingObjectFunction(linearProg["min"], totalBins)
+    creatingObjectFunction(linearProg["min"], totalBins+1)
 
     capacity = dictInput["firstLine"][2]
     subjectTo(totalBins, linearProg, dictInput["weights"], capacity)
     # print("LinearProg: ", linearProg)
 
-    c = np.array(linearProg["min"])
-    A_ub = linearProg["restrictions1"]["leftSide"]
-    b_ub = linearProg["restrictions1"]["rightSide"]
+    c = linearProg["min"]
+    A_eq = linearProg["restrictions1"]["leftSide"]
+    b_eq = linearProg["restrictions1"]["rightSide"]
 
-    A_eq = linearProg["restrictions2"]["leftSide"]
-    b_eq = linearProg["restrictions2"]["rightSide"]
-
-
-    bd = bounds(totalBins)
+    bd = bounds(totalBins+1)
     print(c, "\n")
-    print(A_ub, " <= ", b_ub, "\n")
     print(A_eq, " = ", b_eq, "\n")
     print(bd, "\n")
 
-    res = linprog(c, A_ub=A_ub, b_ub=b_ub, A_eq=A_eq, b_eq=b_eq, bounds=(bd))
-    print(res, "\n")
+    # res = linprog(c, A_ub=A_ub, b_ub=b_ub, A_eq=A_eq, b_eq=b_eq, bounds=(bd))
+    res = linprog(c, A_eq=A_eq, b_eq=b_eq, bounds=(bd))
+    print(res.fun, "\n")
+    print(res.success, "\n")
+    print(res.x, "\n")
 
 
 if __name__ == "__main__":
