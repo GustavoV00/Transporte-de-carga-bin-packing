@@ -57,7 +57,8 @@ def main():
     print(data, "\n\n")
 
     # Create the mip solver with the SCIP backend.
-    solver = pywraplp.Solver.CreateSolver('GLOP')
+    solver = pywraplp.Solver('binPacking',
+                         pywraplp.Solver.GLOP_LINEAR_PROGRAMMING)
 
     # Variables
     # x[i, j] = 1 if item i is packed in bin j.
@@ -89,6 +90,21 @@ def main():
     print("Object value = ", solver.Objective().Value())
     print('Number of variables =', solver.NumVariables())
     print('Number of constraints =', solver.NumConstraints())
+
+    if status == pywraplp.Solver.OPTIMAL:
+        for j in data['bins']:
+            print("y_%i: %f" % (j, y[j].solution_value()))
+            if y[j].solution_value() > 0.0:
+                bin_items = []
+                bin_weight = 0
+                for i in data['items']:
+                    print("%ix_%i_%i: %f" % (data["weights"][i], i, j, x[i,j].solution_value()))
+                    if x[i, j].solution_value() > 0.0:
+                        bin_items.append(i)
+                        bin_weight += data['weights'][i]
+                print("\n\n")
+    else:
+        print('The problem does not have an optimal solution.')
 
 if __name__ == "__main__":
     main()
