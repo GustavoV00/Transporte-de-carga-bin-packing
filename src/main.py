@@ -80,31 +80,39 @@ def main():
     # The amount packed in each bin cannot exceed its capacity.
     for j in data['bins']:
         solver.Add(
-            sum(x[(i, j)] * data['weights'][i] for i in data['items']) <= y[j] * data['bin_capacity']
+            sum(x[(i, j)] * data['weights'][i] for i in data['items']) - (data["bin_capacity"]*y[j]) == 0
         )
+
 
     # Objective: minimize the number of bins used.
     solver.Minimize(solver.Sum([y[j] for j in data['bins']]))
 
-    status = solver.Solve()
+    # status = solver.Solve()
+    solver.Solve()
     print("Object value = ", solver.Objective().Value())
     print('Number of variables =', solver.NumVariables())
     print('Number of constraints =', solver.NumConstraints())
 
-    if status == pywraplp.Solver.OPTIMAL:
-        for j in data['bins']:
-            print("y_%i: %f" % (j, y[j].solution_value()))
-            if y[j].solution_value() > 0.0:
-                bin_items = []
-                bin_weight = 0
-                for i in data['items']:
-                    print("%ix_%i_%i: %f" % (data["weights"][i], i, j, x[i,j].solution_value()))
-                    if x[i, j].solution_value() > 0.0:
-                        bin_items.append(i)
-                        bin_weight += data['weights'][i]
-                print("\n\n")
-    else:
-        print('The problem does not have an optimal solution.')
+    # if status == pywraplp.Solver.OPTIMAL:
+    #     num_bins = 0.
+    #     for j in data['bins']:
+    #         bin_items = []
+    #         bin_weight = 0
+    #         for i in data['items']:
+    #             if x[i, j].solution_value() > 0:
+    #                 bin_items.append(i)
+    #                 bin_weight += data['weights'][i]
+    #         if bin_weight > 0:
+    #             num_bins += 1
+    #             print('Bin number', j)
+    #             print('  Items packed:', bin_items)
+    #             print('  Total weight:', bin_weight)
+    #             print()
+    #     print()
+    #     print('Number of bins used:', num_bins)
+    #     print('Time = ', solver.WallTime(), ' milliseconds')
+    # else:
+    #     print('The problem does not have an optimal solution.')
 
 if __name__ == "__main__":
     main()
