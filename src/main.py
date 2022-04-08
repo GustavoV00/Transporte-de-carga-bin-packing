@@ -1,6 +1,4 @@
-from scipy.optimize import linprog
 from ortools.linear_solver import pywraplp
-import numpy as np
 import sys
 
 
