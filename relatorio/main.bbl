@@ -1,0 +1,13 @@
+\begin{thebibliography}{}
+
+\bibitem[Goossens et~al., 1993]{goossens93}
+Goossens, M., Mittelbach, F.  e Samarin, A. (1993).
+\newblock {\em The \LaTeX\ Companion}.
+\newblock Addison-Wesley.
+
+\bibitem[Oetiker et~al., 2007]{oetiker07}
+Oetiker, T., Partl, H., Hyna, I.  e Schlegl, E. (2007).
+\newblock {\em The Not So Short Introduction to \LaTeXe{}}.
+\newblock \url{http://www.ctan.org/tex-archive/info/lshort}.
+
+\end{thebibliography}

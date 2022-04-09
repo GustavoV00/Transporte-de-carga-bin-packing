@@ -32,6 +32,8 @@ def leInputs(inputs):
 
 def create_model():
     data = {}
+    
+    # A dict to save input from stdin
     dictInput = {
         "firstLine": [],
         "weights": [],
@@ -39,78 +41,64 @@ def create_model():
     }
 
     leInputs(dictInput)
-    # print(dictInput)
 
+    # Pega os dados do stdin, e cria a modelagem do modelo. 
     data["weights"] = dictInput["weights"]
     data["items"] = list(range(len(dictInput["weights"])))
-    data["bins"] = data["items"]
+    data["trucks"] = data["items"]
     data["ordered_pairs"] = dictInput["ordered_pairs"]
     data["bin_capacity"] = 10
 
     return data;
 
-
 def main():
+    # Faz a modelagem dos dados dentro de um dicionário.
     data = create_model()
-    print(data, "\n\n")
 
-    # Create the mip solver with the SCIP backend.
+    # Escolhe o resolvedor, o GLOP é um desses resolvedores. 
     solver = pywraplp.Solver('binPacking',
                          pywraplp.Solver.GLOP_LINEAR_PROGRAMMING)
 
-    # Variables
-    # x[i, j] = 1 if item i is packed in bin j.
+    # Criação das váriaveis #
+
+
+    # x[i, j] = 1, se o item está no caminhão j
     x = {}
     for i in data['items']:
-        for j in data['bins']:
+        for j in data['trucks']:
+            # Cria uma váriavel(objeto do tipo NumVar) e salvo na váriavel x_i_j
             x[(i, j)] = solver.NumVar(0.0, 1.0, 'x_%i_%i' % (i, j))
 
-    # y[j] = 1 if bin j is used.
+    # y[j] = 1, se o caminhão j está sendo usado. 
     y = {}
-    for j in data['bins']:
+    for j in data['trucks']:
         y[j] = solver.NumVar(0.0, 1.0, 'y[%i]' % j)
 
-    # Constraints
-    # Each item must be in exactly one bin.
-    for i in data['items']:
-        solver.Add(sum(x[i, j] for j in data['bins']) == 1)
+    # Restrições #
 
-    # The amount packed in each bin cannot exceed its capacity.
-    for j in data['bins']:
+
+    # A soma dos itens existentes, não devem exceder 1. 
+    # Isso porque, a soma dos itens não deve exceder o caminhão. 
+    for i in data['items']:
+        solver.Add(sum(x[i, j] for j in data['trucks']) == 1)
+
+    # Indica que o peso não deve exceder a capacidade 
+    for j in data['trucks']:
         solver.Add(
-            sum(x[(i, j)] * data['weights'][i] for i in data['items']) - (data["bin_capacity"]*y[j]) == 0
+            sum(x[(i, j)] * data['weights'][i] for i in data['items'])  <= data["bin_capacity"]*y[j]
         )
 
 
-    # Objective: minimize the number of bins used.
-    solver.Minimize(solver.Sum([y[j] for j in data['bins']]))
+    # Função objetiva. Minimza o numero de caminhões utilizados.
+    solver.Minimize(solver.Sum([y[j] for j in data['trucks']]))
 
-    # status = solver.Solve()
+    # Chama o resolver
     solver.Solve()
+
+    # Imprime os resultados na tela. 
     print("Object value = ", solver.Objective().Value())
     print('Number of variables =', solver.NumVariables())
     print('Number of constraints =', solver.NumConstraints())
-
-    # if status == pywraplp.Solver.OPTIMAL:
-    #     num_bins = 0.
-    #     for j in data['bins']:
-    #         bin_items = []
-    #         bin_weight = 0
-    #         for i in data['items']:
-    #             if x[i, j].solution_value() > 0:
-    #                 bin_items.append(i)
-    #                 bin_weight += data['weights'][i]
-    #         if bin_weight > 0:
-    #             num_bins += 1
-    #             print('Bin number', j)
-    #             print('  Items packed:', bin_items)
-    #             print('  Total weight:', bin_weight)
-    #             print()
-    #     print()
-    #     print('Number of bins used:', num_bins)
-    #     print('Time = ', solver.WallTime(), ' milliseconds')
-    # else:
-    #     print('The problem does not have an optimal solution.')
 
 if __name__ == "__main__":
     main()
