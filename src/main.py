@@ -1,3 +1,5 @@
+#!/usr/bin/python3
+
 from ortools.linear_solver import pywraplp
 import sys
 

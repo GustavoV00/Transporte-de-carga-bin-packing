@@ -27,3 +27,6 @@ Forma de reproduzir o código:
   
   Assim o makefile vai executar todos os testes dentro de ./testes/, e vai jogar o output dentro de uma saída padrão.
 
+
+Notas:
+  Caso exista algum problema para se reproduzir o projeto em alguma máquina, verificar a versão em que se está o python3 e também verificar se na primeira lina do arquivo src/main.py, onde fica o #!/usr/bin/python3 se está de acordo com o path do seu python caso não esteja, basta mudar essa linha de acordo e compilar o código novamente com o comando make.
