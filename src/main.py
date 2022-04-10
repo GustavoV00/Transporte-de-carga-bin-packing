@@ -33,7 +33,8 @@ def leInputs(inputs):
 def create_model():
     data = {}
     
-    # A dict to save input from stdin
+    # Dicionario que salvo os dados de entrada 
+    # a partir do arquivo.
     dictInput = {
         "firstLine": [],
         "weights": [],
@@ -42,12 +43,22 @@ def create_model():
 
     leInputs(dictInput)
 
-    # Pega os dados do stdin, e cria a modelagem do modelo. 
+    # Indica os pesos de cada item
     data["weights"] = dictInput["weights"]
+
+    # Indica a quantidade de itens existentes
+    # Será utilizado para criar as váriaveis mais tarde
     data["items"] = list(range(len(dictInput["weights"])))
+
+    # Indica a quantidade de caminhões.
     data["trucks"] = data["items"]
+
+    # Indica os pares ordenados. Aviso: Não foi utilizado.
     data["ordered_pairs"] = dictInput["ordered_pairs"]
-    data["bin_capacity"] = 10
+
+    #Indica a capacidade da carga, C
+    data["bin_capacity"] = dictInput["firstLine"][2]
+
 
     return data;
 
@@ -69,10 +80,13 @@ def main():
             # Cria uma váriavel(objeto do tipo NumVar) e salvo na váriavel x_i_j
             x[(i, j)] = solver.NumVar(0.0, 1.0, 'x_%i_%i' % (i, j))
 
+
+
     # y[j] = 1, se o caminhão j está sendo usado. 
     y = {}
     for j in data['trucks']:
         y[j] = solver.NumVar(0.0, 1.0, 'y[%i]' % j)
+
 
     # Restrições #
 
@@ -81,6 +95,8 @@ def main():
     # Isso porque, a soma dos itens não deve exceder o caminhão. 
     for i in data['items']:
         solver.Add(sum(x[i, j] for j in data['trucks']) == 1)
+
+
 
     # Indica que o peso não deve exceder a capacidade 
     for j in data['trucks']:

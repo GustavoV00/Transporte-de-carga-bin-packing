@@ -6,7 +6,7 @@ OUTPUT=$(MAIN)_$(USER).pdf	# a pedido da coordenacao
 
 main: $(MAIN).tex
 	@pdflatex $(MAIN)
-	@bibtex   $(MAIN)
+	# @bibtex   $(MAIN)
 	@pdflatex $(MAIN)
 	@pdflatex $(MAIN)
 	@mv $(MAIN).pdf $(OUTPUT)
