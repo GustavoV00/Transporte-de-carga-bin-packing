@@ -15,7 +15,7 @@ Estrutura de diretórios:
 
 Forma de reproduzir o código:
   basta digitar para instalar todas as dependências do projeto:
-    pip3 -r requirements.txt
+  pip3 install ortools (dependência)
   
   Para executar o algoritimo:
     make
@@ -24,7 +24,7 @@ Forma de reproduzir o código:
   ou, é possível criar um arquivo de teste e colocar dentro do diretório ./tests/ e digitar:
     make
     make run
-  
+
   Assim o makefile vai executar todos os testes dentro de ./testes/, e vai jogar o output dentro de uma saída padrão.
 
 
