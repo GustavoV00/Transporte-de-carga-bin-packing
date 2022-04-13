@@ -25,7 +25,5 @@ else:
     print('The problem does not have an optimal solution.')
 
 print('\nAdvanced usage:')
-print('Problem solved in %f milliseconds' % solver.wall_time())
+print('Problem solved in %f milliseconds' % solver.wall_time()) 
 print('Problem solved in %d iterations' % solver.iterations())
-
-

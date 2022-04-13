@@ -3,129 +3,130 @@
 %=====================================================
 
 % A introdução geral do documento pode ser apresentada através das seguintes seções: Desafio, Motivação, Proposta, Contribuição e Organização do documento (especificando o que será tratado em cada um dos capítulos). O Capítulo 1 não contém subseções\footnote{Ver o Capítulo \ref{cap-exemplos} para comentários e exemplos de subseções.}.
-O problema sugerido pelo orientador consiste em modelar e implementar uma solução para o problema de envio ordenado. Existe uma certa quantidade de produtos disponíveis e esses produtos precisam ser enviados em uma quantidade finita de caminhões. O objetivo do trabalho, é encontrar uma solução que minimize a quantidade de caminhões necessários para realizar o transporte de todas as mercadorias. Os items serão que transportados, podem ser separados em pedaços menores de forma que seja possível separar os pedaços em caminhões diferentes. 
+O problema sugerido pelo orientador consiste em modelar e implementar uma solução para o problema de envio ordenado. Existe uma certa quantidade de produtos disponíveis e esses produtos precisam ser enviados em uma quantidade finita de viagens. O objetivo do trabalho, é encontrar uma solução que minimize a quantidade de viagens necessárias para realizar o transporte de todas as mercadorias. Os itens que serão transportados podem ser separados em pedaços menores de forma que seja possível separar os pedaços em caminhões diferentes.
 
 \section{LIMITAÇÕES E DETALHES}
   Antes de começar a análise e modelagem do problema, vou definir alguns detalhes, limitações e problemas encontrados. 
   \begin{itemize}
-    \item O custo mínimo é calculado sobre a quantidade minima de viagens necessárias, de forma que eu consiga fazer o transporte de todos os produtos. 
+    \item O custo mínimo é calculado sobre a quantidade mínima de viagens necessárias, de forma que eu consiga fazer o transporte de todos os produtos. 
     \item Cada caminhão possui um limite de peso que ele consegue carregar. E esse peso precisa ser respeitado pelos itens que estarão dentro desse caminhão. 
     \item Os caminhões podem carregar diferentes itens, contanto que o peso seja respeitado. 
-    \item Na modelagem do problema, não foi considerado os pares ordenados. Isso porque não foi possível chegar em uma forma de ter pares ordenados utilizando programação linear.
+    \item Na modelagem do problema, os pares ordenados não foram considerados. Isso porque não foi encontrada uma forma de se utilizar os pares ordenados utilizando da programação linear.
     \item Se necessário, um item pode ser separado em diferentes caminhões.
   \end{itemize}
 
 \section{VARIÁVEIS DO PROBLEMA}
-  Nessa sessão é apresentado as váriaveis e restrições que foram realizados na usados na modelagem do problema.
+  Nesta seção é apresentado as variáveis e restrições que foram utilizadas na modelagem do problema.
 
-  \paragraph{Variaveis Geras}
+  \paragraph{Variáveis Gerais:}
     \begin{itemize}
-      \item n = Quantidade de itens que terão que ser transportados.
+      \item n = Quantidade de itens que serão transportados.
       \item C = Capacidade total possível para cada caminhão.
     \end{itemize}
 
-  \paragraph{Váriaveis referente ao problema}
+  \paragraph{Váriaveis referente ao problema:}
     \begin{itemize}
-      \item {\( x_{i} \) = representa o item i. }
       \item {\( w_{i} \) = representa o peso do item i. }
       \item {\( y_{j} \) = representa o caminhão j.}
       \item \( x_{i,j}\) = representa o item i no caminhão j.
     \end{itemize}
 
-  Essas são todas as váriaveis necessárias para realizar a modelagem do problema. Nos próximos capítulos seram abordados a resposta ótima para o problema, a modelagem e restrições, como foi implementado e um exemplo prático. 
+  Essas são todas as variáveis necessárias para realizar a modelagem do problema. Nos próximos capítulos serão abordados a resposta ótima para o problema, a modelagem/restrições, como foi implementado e um exemplo prático. 
 
-\section{RESPOSTA ÓTIMA PARA O PROBLEMA}
-  O problema de envio de cargas será resolvido utilizando as técnicas de programação linear. Nesta área, uma das principais preocupações para o problema, é encontrar uma solução ótima para o problema. Neste problema, a solução ótima é aquela que respeita as restrições e o custo total mínimo. A técnica de programação linear que será utilizada, é o simplex.
+\section{ESCOLHA DA FERRAMENTA DE MODELAGEM}
+  O problema de envio de cargas será resolvido utilizando as técnicas de programação linear. Nesta área, uma das principais preocupações é encontrar uma solução ótima para o problema. Neste problema, a solução ótima é aquela que respeita as restrições e o custo total mínimo. A técnica de programação linear que será utilizada, é o simplex.
   Iremos utilizar a linguagem de programação python junto com uma ferramenta chamada ortools do Google e como essa ferramenta nos disponibiliza vários resolvedores possíveis, o escolhido é o "GLOP".
 
   \subsection{Exemplo de como utilizar a ferramenta}
-    Para facilitar a leitura dos problemas posteriores, nessa seção será apresentado um passo a passo de um problema básico. Desde sua modelagem, até solução. Vamos supor o seguinte problema de programação linear:
+    Para facilitar a leitura dos problemas posteriores, nessa seção será apresentado um passo a passo de um problema básico, desde sua modelagem, até solução. Vamos supor o seguinte problema de programação linear:
     \[max: 3x + 4y \]
     \[st: x + 2y \leq 14 \]
     \[st: 3x - y \geq 0 \]
     \[st: x - y \leq 2 \]
 
-    Tanto a função objetiva 3x + 4y quanto suas restrições são representado por expressões lineares, criando assim um problema de programação linear. 
+    Tanto a função objetiva 3x + 4y, quanto suas restrições são representados por expressões lineares, criando assim um problema de programação linear.  
     As restrições do problema, criam a seguinte região.
 
     \begin{center}
-      \includegraphics[scale=.35]{~/Pictures/feasibleTriangle.png}\\
-      Imagem 1: Feasible region
+      \includegraphics[scale=.55]{~/Images/relatorioTransporteDeCarga/feasibleTriangle.png}\\
+      Imagem 1: Possíveis resultados.
     \end{center}
 
-    Para começarmos a resolução do problema de exemplo, precisaresmo fazer o import da bilioteca e selecionar o resolver que queremos. 
+    Para começarmos a resolução do problema de exemplo, precisaremos fazer o import da biblioteca e selecionar o resolver que queremos.
     \begin{center}
-      \includegraphics[scale=.35]{~/Pictures/import&resolver.png}\\
+      \includegraphics[scale=.55]{~/Images/relatorioTransporteDeCarga/import&resolver.png}\\
       Imagem 1: Import e Resolvedor
     \end{center}
-    Como ja explicado acima, o "GLOP" é um resolver de problemas de programação linear que utilizado o algoritimo do simplex. 
-    Agora que ja temos o resolvedor pronto, precisamos criar as váriaveis e as restrições. Para criar as váriaveis, precisamos fazer o seguinte :
+    Como já explicado acima, o "GLOP" é um resolvedor de problemas de programação linear que utiliza o algoritmo do simplex.
+    Agora que já temos o resolvedor pronto, precisamos criar as variáveis e as restrições. Para criar as variáveis, precisamos fazer o seguinte:
     \begin{center}
-      \includegraphics[scale=.35]{~/Pictures/variables.png}\\
+      \includegraphics[scale=.55]{~/Images/relatorioTransporteDeCarga/variables.png}\\
       Imagem 2: Variáveis do problema.
     \end{center}
     Com as váriaveis criadas, precisamos criar as restrições necessáris.
     \begin{center}
-      \includegraphics[scale=.35]{~/Pictures/restricoes.png}\\
+      \includegraphics[scale=.55]{~/Images/relatorioTransporteDeCarga/restricoes.png}\\
       Imagem 3: Restrições do problema.
     \end{center}
-    Agora que temos tanto as váriaveis do problema e as restrições, preciso criar minha função objetiva e chamar o resolvedor.
+    Agora que temos tanto as variáveis do problema e as restrições, preciso criar minha função objetiva e chamar o resolvedor.
     \begin{center}
-      \includegraphics[scale=.35]{~/Pictures/objective&resolvedor.png}\\
+      \includegraphics[scale=.55]{~/Images/relatorioTransporteDeCarga/objective&resolver.png}\\
       Imagem 3: Restrições do problema.
     \end{center}
-    Agora com tudo pronto, teremos a seguinte resposta. 
+    Agora com tudo pronto, teremos a seguinte resposta.
     \begin{center}
-      \includegraphics[scale=.35]{~/Pictures/result.png}\\
-      Imagem 3: Restrições do problema.
+      \includegraphics[scale=.55]{~/Images/relatorioTransporteDeCarga/result.png}\\
+      Imagem 4: Restrições do problema.
     \end{center}
 
-    Esse é um exemplo de como funciona a ferramenta ortools, dessa mesma forma será feito a modelagem do problema de envio de cargas.
-    
+    Esse é um exemplo de como funciona a ferramenta or-tools, dessa mesma forma será feito a modelagem do problema de envio de cargas.
+   
 \chapter{MODELAGEM E RESTRIÇÕES}
-  Nesse capitulo será realizado a modelagem do problema utilizando as váriveis já descritas nos capítulos anteriores. De forma a facilitar o entendimento, será apresetado a modelagem inteira de uma vez e em seguida será discutido passo a passo como que ela funciona. 
+  Neste capítulo será realizado a modelagem do problema utilizando as variáveis já descritas nos capítulos anteriores. De forma a facilitar o entendimento, será apresentado a modelagem inteira de uma vez e em seguida será discutido passo a passo de como ela funciona.
   \begin{center}
     \begin{tabular}{|p{3cm}|p{5cm}|p{3cm}|}
       \hline
-        Inequações & Restrições & Limite \\ 
+        Inequações & Restrições & Limite \\
       \hline
         Inequação 1 & \( \sum_{i=1}^{n} \sum_{j=1}^{n} x_{i,j} = 1\) & \( 1 \leq i,j \leq n  \)\\
       \hline
         Inequação 2 & \( \sum_{i=1}^{n} \sum_{j=1}^{n} w_{i}*x_{i,j} \leq C*y_{i}\) & \( 1 \leq i,j \leq n  \)\\
       \hline
-        Inequação 3 & \(  x_{i,j} \in \{0,1\}  \) & \( 1 \leq i,j \leq n  \)\\
+        Inequação 3 & \(  x_{i,j} \in \{0.0, 1.0\}  \) & \( 1 \leq i,j \leq n  \)\\
       \hline
-        Inequação 4 & \(  y_{j} \in \{0, 1\} \) & \( 1 \leq j \leq n  \)\\
+        Inequação 4 & \(  y_{j} \in \{0.0, 1.0\} \) & \( 1 \leq j \leq n  \)\\
       \hline
     \end{tabular}
   \end{center}
 
 \paragraph{INEQUAÇÃO 1:}
-  A inequação 1 nos diz a quantidade do item i que está contida dentro do caminhão j e essa soma não pode ultrapassar o 1, que indica que o item ja foi completamente transportado. Essa restrição é importante, porque confirma quando que o item inteiro já foi transportado. \\
+  A inequação 1 nos diz a quantidade do item i que está contida dentro do caminhão j, essa soma não pode ultrapassar o 1, que indica que o item já foi completamente transportado.
+Essa restrição é importante, porque confirma quando o item inteiro já foi transportado.
+\\
 
 \paragraph{INEQUAÇÃO 2:}
-  A inequação 2 nos diz qual o peso limite que cada caminhão pode carregar. Como o C (Capacidade) é um valor fixo, todos os caminhões terão um mesmo limite de peso. Então cada item multiplicado pelo seu peso, terão que ser menor que a quantidade limite de peso que o caminhão consegue carregar. Essa restrição é importante, porque dessa forma conseguimos separar os itens em vários caminhões, caso contrário todos os itens irião tudo em um único caminhão. 
+  A inequação 2 nos diz qual o peso limite que cada caminhão pode carregar. Como o C (Capacidade) é um valor fixo, todos os caminhões terão um mesmo limite de peso. Então cada item multiplicado pelo seu peso, terão que ser menores que a quantidade limite de peso que o caminhão consegue carregar. Essa restrição é importante, porque dessa forma conseguimos separar os itens em vários caminhões, caso contrário todos os itens irão em um único caminhão.
 
 \paragraph{INEQUAÇÃO 3 e 4:}
-  Essas inequações apenas nos diz onde que está o limite 
+Essas inequações apenas nos diz qual é o conjunto de valores que \( x_{i,j} e y_{j} \) podem assumir.
 
 \section{FUNÇÃO DE CUSTO}
-  Com a função abaixo que iremos conseguir calcular nosso resultado ótimo para o problema. 
+  Com a função abaixo que iremos conseguir calcular nosso resultado ótimo para o problema.
   \[\sum_{j=1}^{n}y_{j}, 1 \leq j \leq n\]
-  Como o nosso problema é para encontrar a menor quantidade de viajens possíveis para uma quantidade n de caminhões. Com isso, basta fazer a soma de todos os \(y_{j}\) que conseguimos chegar em um resultado ótimo para nosso função, é importante ressaltar que esse valor de \( y_{j}\) está dentro do limite de \{0, 1\}.
+  Como o problema é encontrar a menor quantidade de viagens possíveis. Com isso, basta fazer a soma de todos os \(y_{j}\) que conseguiremos chegar em um resultado ótimo para o problema, é importante ressaltar que esse valor de \( y_{j}\) está dentro do limite de \{0.0, 1.0\}.
 
 \chapter{FORMATO DE ENTRADA}
-  O nosso formato de entrada é a partir de um arquivo. Em sua primeira linha existe três números, n sendo a quantidade de itens, p indicando o numero de pares ordenados, e C que indica a capacidade total de cada caminhão. Na segunda linha, tempos n pesos \(w_{i}\), sendo que cada i representa o peso de um item. E no final, tempos os pares ordenados (p1, p2), que por motivos ja citados anteriormente, eles não foram utilizados para resolver este problema. Para uma melhor representação, segue a imagem abaixo de um exemplo genérico:
+  O nosso formato de entrada é a partir de um arquivo. Em sua primeira linha existem três números, \textbf{n} sendo a quantidade de itens, \textbf{p} indicando o número de pares ordenados, e \textbf{C} que indica a capacidade total de cada caminhão. Na segunda linha, tempos n pesos \textbf{\(w_{i}\)}, sendo que cada i representa o peso de um item. E no final, tempos os pares ordenados (p1, p2), que por motivos já citados anteriormente, não foram utilizados para resolver este problema. Para uma melhor representação, segue a imagem abaixo dê um exemplo genérico:
 \begin{center}
-  \includegraphics[scale=.35]{~/Pictures/Screenshot from 2022-04-09 19-30-43.png}\\
+  \includegraphics[scale=.35]{~/Images/relatorioTransporteDeCarga/generalInput.png}\\
   Imagem 6: Exemplo genérico de entrada.
 \end{center}
-  Esse seria um exemplo gérico de entrada, para que o script consiga resolver independentemente dos valores de entrada.  
-  
+  Esse seria um exemplo genérico de entrada, para que o script consiga resolver independentemente dos valores de entrada. 
+ 
   \section{EXEMPLO PRÁTICO}
-    Nesse capítulo vamos modelar o problema do envio de cargas de acordo com os valroes de entrada da figura abaixo.
+    Neste capítulo vamos modelar o problema do envio de cargas de acordo com os valores de entrada da figura abaixo.
     \begin{center}
-      \includegraphics[scale=.35]{~/Pictures/Screenshot from 2022-04-09 19-34-00.png}\\
+      \includegraphics[scale=.35]{~/Images/relatorioTransporteDeCarga/inpurtExemplo.png}\\
       Imagem 7: Exemplo de entrada com valores reais.
     \end{center}
 
@@ -137,7 +138,7 @@ O problema sugerido pelo orientador consiste em modelar e implementar uma soluç
     \noindent Saída:\\
        \indent 2.8 \\
 
-       De acordo com o capítulo onde foi explicado as restrições e as váriaveis, as restrições serão montadas de acordo com as inequações já apresentadas. \\
+       De acordo com o capítulo onde foi explicado as restrições e as variáveis, as restrições serão montadas de acordo com as inequações já apresentadas. \\
 
       \noindent Inequação 1: \( \sum_{i=1}^{n} \sum_{j=1}^{n} x_{i,j} = 1\) \\
         \noindent As restrições ficariam da seguinte forma:\\
@@ -148,62 +149,91 @@ O problema sugerido pelo orientador consiste em modelar e implementar uma soluç
         \indent \( x_{5,1} + x_{5,2} + x_{5,3} + x_{5,4} + x_{5,5} = 1 \)\\
 
       \noindent Inequação 2: \( \sum_{i=1}^{n} \sum_{j=1}^{n} w_{i}*x_{i,j} \leq C*y_{i}\) \\
-        \indent \( 5x_{1,1} + 5x_{1,2} + 5x_{1,3} + 5x_{1,4} + 5x_{1,5} \leq C*y_{1} \)\\
-        \indent \( 6x_{2,1} + 6x_{2,2} + 6x_{2,3} + 6x_{2,4} + 6x_{2,5} \leq C*y_{2} \)\\
-        \indent \( 4x_{3,1} + 4x_{3,2} + 4x_{3,3} + 4x_{3,4} + 4x_{3,5} \leq C*y_{3} \)\\
-        \indent \( 8x_{4,1} + 8x_{4,2} + 8x_{4,3} + 8x_{4,4} + 8x_{4,5} \leq C*y_{4} \)\\
-        \indent \( 5x_{5,1} + 5x_{5,2} + 5x_{5,3} + 5x_{5,4} + 5x_{5,5} \leq C*y_{5} \)\\
+        \indent \( 5x_{1,1} + 5x_{1,2} + 5x_{1,3} + 5x_{1,4} + 5x_{1,5} \leq 10*y_{1} \)\\
+        \indent \( 6x_{2,1} + 6x_{2,2} + 6x_{2,3} + 6x_{2,4} + 6x_{2,5} \leq 10*y_{2} \)\\
+        \indent \( 4x_{3,1} + 4x_{3,2} + 4x_{3,3} + 4x_{3,4} + 4x_{3,5} \leq 10*y_{3} \)\\
+        \indent \( 8x_{4,1} + 8x_{4,2} + 8x_{4,3} + 8x_{4,4} + 8x_{4,5} \leq 10*y_{4} \)\\
+        \indent \( 5x_{5,1} + 5x_{5,2} + 5x_{5,3} + 5x_{5,4} + 5x_{5,5} \leq 10*y_{5} \)\\
 
       \noindent limites: \\
         \indent \( x_{i,j} \in \{0,1\}\) \\
         \indent \( y_{j} \in \{0,1\}\) \\
-        
-      Essa seria a modelagem do problema, se utilizarmos as restrições. Se jogarmos essas restrições em qualquer resolvedor, teriamos o resultado de 2.8. A imagem abaixo representa a solução dessa modelagem utilizando o lpsolve IDE, que é basicamente um resolvedor com interface gráfica.
+       
+      Essa seria a modelagem do problema, se utilizarmos as restrições. Se jogarmos essas restrições em qualquer resolvedor, teríamos o resultado de 2.8. A imagem abaixo representa a solução dessa modelagem utilizando o lpsolve IDE, que é basicamente um resolvedor com interface gráfica.
       \begin{center}
-        \includegraphics{~/Pictures/Screenshot from 2022-04-09 20-38-04.png}\\
+      \includegraphics[scale=.55]{~/Images/relatorioTransporteDeCarga/lpsolve.png}\\
         Imagem 8: Resolvedor com interface grafica IDE
       \end{center}
 
 \chapter{MODELAGEM UTILIZANDO O PYTHON3}
-  Nesse capítulo será explicado como utilizar da ferramente ortools para resolver o problema de envio de cargas, será apresentado apenas as partes importantes do código.
-  De forma que seja possível resolver o problema para qualquer entrada, separamos a o código em duas partes. A primeira parte lê o arquivo de entrada e salvo em um dicionario chamado dictInput e a partir disso consigo criar um dicionário chamado data que representa a modelagem do problema de envio de cargas. E a na segunda parte é onde conseguimos a solução do problema.
+  Neste capítulo será explicado como utilizar da ferramenta or-tools para resolver o problema de envio de cargas, será apresentado apenas as partes importantes do código.
+  De forma que seja possível resolver o problema para qualquer entrada, separamos o código em duas partes. A primeira parte lê o arquivo de entrada e salvo em um dicionário chamado dictInput e a partir disso consigo criar um dicionário chamado data que representa a modelagem do problema de envio de cargas. E a na segunda parte é onde conseguimos a solução do problema.
   \begin{center}
-    \includegraphics[scale=.45]{~/Pictures/Screenshot from 2022-04-09 20-59-11.png}\\
-    Imagem 9: Dicionário que contém o input dos dados\\
-    \includegraphics[scale=.45]{~/Pictures/Screenshot from 2022-04-09 21-02-27.png}\\
+    \includegraphics[scale=.55]{~/Images/relatorioTransporteDeCarga/dictInput.png}\\
+    Imagem 9: Dicionário que contém o input dos dados.\\
+    \includegraphics[scale=.55]{~/Images/relatorioTransporteDeCarga/dataModel.png}\\
     Imagem 10: Dicionário que contém os dados modelados.\\
   \end{center}
 
-  Agora que tempos os dados de entrada dentro de um dicionário, fica muito mais fácil de se criar as restrições do problema. 
-  Agora é necessário criar as váriaveis dos itens e dos caminhões. Conseguimos fazer isso da seguinte forma:
+  Agora que tempos os dados de entrada dentro de um dicionário, fica muito mais fácil de se criar as restrições do problema.
+  Agora é necessário criar as variáveis dos itens e dos caminhões. Conseguimos fazer isso da seguinte forma:
   \begin{center}
-    \includegraphics[scale=.45]{~/Pictures/Screenshot from 2022-04-09 21-06-53.png}\\
-    Imagem 11: Criação das váriaveis \(x_{i,j}\)
+    \includegraphics[scale=.55]{~/Images/relatorioTransporteDeCarga/x_i_j.png}\\
+    Imagem 11: Criação das variáveis. \(x_{i,j}\)
   \end{center}
   Dessa forma, conseguimos criar as váriaveis que indicará em qual caminhão j o item i irá pertencer.
 
-  Para criarmos os possíveis caminhções, será feito algo similar.
+  Para criarmos os possíveis caminhões, será feito algo similar.
   \begin{center}
-    \includegraphics[scale=.45]{~/Pictures/Screenshot from 2022-04-09 21-06-58.png}\\
+    \includegraphics[scale=.55]{~/Images/relatorioTransporteDeCarga/y_j.png}\\
     Imagem 11: Criação das váriaveis dos caminhões \(y_{j}\)
   \end{center}
-  Com isso conseguimos criar todas as váriaveis necessárias para o problema.
+  Com isso conseguimos criar todas as variáveis necessárias para o problema.
 
-  Agora que as váriaveis já estão criadas, é necessário criar as restrições do problema. 
+  Agora que as variáveis já estão criadas, é necessário criar as restrições do problema.
   Será criado primeiro a restrições que indicam em qual caminhão cada item será inserido, será feito isso da seguinte forma:
   \begin{center}
-    \includegraphics[scale=.45]{~/Pictures/Screenshot from 2022-04-09 21-12-45.png}\\
-    Imagem 12: Criação das restrições \(y_{j}\)
+    \includegraphics[scale=.55]{~/Images/relatorioTransporteDeCarga/itemTotal.png}\\
+    Imagem 12: Criação das restrições que indica o envio total do item;
   \end{center}
   Agora é preciso criar as restrições de pesos para cada caminão, será feito de forma similar as restrições anteriores.
   \begin{center}
-    \includegraphics[scale=.45]{~/Pictures/Screenshot from 2022-04-09 21-12-27.png}\\
-    Imagem 12: Criação das restrições \(y_{j}\)
+    \includegraphics[scale=.55]{~/Images/relatorioTransporteDeCarga/capacidade.png}\\
+    Imagem 12: Criação das restrições de peso para cada caminhão.
   \end{center}
 
-  Agora que temos todo o problema modelado, basta chamar o resolvedor para se obter o resultado da modelagem do problema. 
+  Agora que todas as variáveis, restrições e toda a modelagem está feita, basta rodar o resolvedor fazendo o seguinte:
   \begin{center}
-    \includegraphics[scale=.45]{~/Pictures/Screenshot from 2022-04-09 21-15-42.png}\\
-    Imagem 12: Criação das restrições \(y_{j}\)
+    \includegraphics[scale=.55]{~/Images/relatorioTransporteDeCarga/solver&objective.png}\\
+    Imagem 12: Função objetiva e resolvedor
   \end{center}
-  Dessa forma, resolver qualquer problema se tivermos uma entrada de dados correta.
+  Dessa forma é possível resolver qualquer situação que envolva o problema de envio de cargas citado neste artigo. Basta a entrada de dados serem no formato citado.
+
+\chapter{OUTROS EXEMPLOS}
+
+    \noindent Entrada:\\
+      \indent n = 10; p = 2; C = 20;\\
+      \indent \(w_{1} = 5, w_{2} = 6, w_{3} = 4, w_{4} = 8, w_{5} = 5,
+        w_{6} = 0, w_{7} = 1, w_{8}, = 2, w_{9}, = 39, w_{10} = 2\)\\
+      \indent (\(p_{1} = 2, p_{2} = 3\))\\
+      \indent (\(p_{1} = 5, p_{2} = 1\))\\
+    \noindent Saída:\\
+       \indent 3.6 \\
+
+
+    \noindent Entrada:\\
+      \indent n = 15; p = 2; C = 30;\\
+      \indent \(w_{1} = 7, w_{2} = 2, w_{3} = 4, w_{4} = 4, w_{5} = 5,
+        w_{6} = 29, w_{7} = 2, w_{8} = 1, w_{9} = 94, w_{10} = 57,
+        w_{11} = 12, w_{12} = 305, w_{13} = 28, w_{14} = 2, w_{15} = 3\)\\
+      \indent (\(p_{1} = 2, p_{2} = 3\))\\
+      \indent (\(p_{1} = 5, p_{2} = 1\))\\
+    \noindent Saída:\\
+       \indent Não existe solução ótima. \\
+  
+\chapter{Referências}
+[1] MATOUŠEK, Jiří; GÄRTNER, Bernd. Understanding and Using Linear
+Programming. [S. l.]: Springer, 2007.\\
+ 
+
+[2] Google OR-Tools, Google, https://developers.google.com/optimization, 2015, acessado em 11/04/2022

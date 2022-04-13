@@ -1,5 +1,9 @@
 #!/usr/bin/python3
 
+
+# Gustavo Valente Nunes
+# GRR 20182557
+
 from ortools.linear_solver import pywraplp
 import sys
 
@@ -59,7 +63,7 @@ def create_model():
     data["ordered_pairs"] = dictInput["ordered_pairs"]
 
     #Indica a capacidade da carga, C
-    data["bin_capacity"] = dictInput["firstLine"][2]
+    data["trucks_capacity"] = dictInput["firstLine"][2]
 
 
     return data;
@@ -69,7 +73,7 @@ def main():
     data = create_model()
 
     # Escolhe o resolvedor, o GLOP é um desses resolvedores. 
-    solver = pywraplp.Solver('binPacking',
+    solver = pywraplp.Solver('trucksPacking',
                          pywraplp.Solver.GLOP_LINEAR_PROGRAMMING)
 
     # Criação das váriaveis #
@@ -80,14 +84,14 @@ def main():
     for i in data['items']:
         for j in data['trucks']:
             # Cria uma váriavel(objeto do tipo NumVar) e salvo na váriavel x_i_j
-            x[(i, j)] = solver.NumVar(0.0, 1.0, 'x_%i_%i' % (i, j))
+            x[(i, j)] = solver.NumVar(0, 1, 'x_%i_%i' % (i, j))
 
 
 
     # y[j] = 1, se o caminhão j está sendo usado. 
     y = {}
     for j in data['trucks']:
-        y[j] = solver.NumVar(0.0, 1.0, 'y[%i]' % j)
+        y[j] = solver.NumVar(0, 1.0, 'y[%i]' % j)
 
 
     # Restrições #
@@ -103,7 +107,7 @@ def main():
     # Indica que o peso não deve exceder a capacidade 
     for j in data['trucks']:
         solver.Add(
-            sum(x[(i, j)] * data['weights'][i] for i in data['items'])  <= data["bin_capacity"]*y[j]
+            sum(x[(i, j)] * data['weights'][i] for i in data['items'])  <= data["trucks_capacity"]*y[j]
         )
 
 
@@ -111,12 +115,14 @@ def main():
     solver.Minimize(solver.Sum([y[j] for j in data['trucks']]))
 
     # Chama o resolver
-    solver.Solve()
+    status = solver.Solve()
 
     # Imprime os resultados na tela. 
-    print("Object value = ", solver.Objective().Value())
-    print('Number of variables =', solver.NumVariables())
-    print('Number of constraints =', solver.NumConstraints())
+    if status == pywraplp.Solver.OPTIMAL:
+        print(solver.Objective().Value())
+
+    else:
+        print("Não existe uma solução ótima para o problema")
 
 if __name__ == "__main__":
     main()
