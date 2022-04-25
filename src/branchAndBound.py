@@ -1,96 +1,84 @@
+
+from collections import deque
 from ortools.linear_solver import pywraplp
 
-def optimalSolution(solver, y, x, data, novasRes, level):
-    # Função objetiva. Minimza o numero de caminhões utilizados.
-    i = 0
-    while(i < len(novasRes) and novasRes[i] != -1):
-        print("AAAAAAAAAAAAAA: %d e %d" % (level, novasRes[i]))
-        solver.Add(x[novasRes[i], level] == 1)
-        i += 1
+class Pack:
+    def __init__(self, level, x, y, otimo, variablesAmount, solver, data):
+        self.level = level
+        self.maxLevel = variablesAmount
+        self.x = x
+        self.y = y
+        self.novasRes = [ -1 for _ in range(variablesAmount)]
+        self.itens = [(a) for a in range(variablesAmount) ]
+        self.otimo = otimo
+        self.variablesAmount = variablesAmount
+        self.solver = solver
+        self.data = data
 
-    solver.Minimize(solver.Sum([y[j] for j in data['trucks']]))
+    def optimalSolution(self):
 
-    status = solver.Solve()
+        # Função objetiva. Minimza o numero de caminhões utilizados.
+        i = 0
+        while(i < len(self.novasRes) and self.novasRes[i] != -1):
+            print("AAAAAAAAAAAAAA: %d e %d" % (self.level, self.novasRes[i]))
+            self.solver.Add(self.x[self.novasRes[i], self.level] == 1)
+            i += 1
 
-    ramifica = True;
-    if status == pywraplp.Solver.OPTIMAL:
-        num_bins = 0.
-        for j in data['trucks']:
-            # print(f"y[{j}]",y[j].solution_value())
-            if y[j].solution_value() >= 0:
-                bin_items = []
-                bin_weight = 0
-                for i in data['items']:
-                    # print(f"x[{i}, {j}]",x[i,j].solution_value())
-                    if(x[i,j].solution_value() < 1 and x[i,j].solution_value() > 0):
-                        ramifica = True
+        self.solver.Minimize(self.solver.Sum([self.y[j] for j in self.data['trucks']]))
 
-                    bin_items.append(i)
-                    bin_weight += data['weights'][i]
-                # print()
-                # if bin_weight >= 0:
-                #     num_bins += 1
-                #     print('Bin number', j)
-                #     print('  Items packed:', bin_items)
-                #     print('  Total weight:', bin_weight)
-                #     print()
-        # print()
-        # print('Number of bins used:', num_bins)
-        # print('Time = ', solver.WallTime(), ' milliseconds')
-    else:
-        ramifica = False
-        print('The problem does not have an optimal solution.\n')
+        status = self.solver.Solve()
 
-    otimo = -1
-    if(ramifica == True):
-        otimo = solver.Objective().Value()
+        if status == pywraplp.Solver.OPTIMAL:
+            num_bins = 0.
+            for j in self.data['trucks']:
+                # print(f"y[{j}]",y[j].solution_value())
+                if self.y[j].solution_value() >= 0:
+                    bin_items = []
+                    bin_weight = 0
+                    for i in self.data['items']:
+                        # print(f"x[{i}, {j}]",x[i,j].solution_value())
 
-    return [ramifica, otimo]
-
-
-def branchAndBound(solver, variablesAmount, otimo, level, itens, y, x, data, ramifica, novasRes, i):
-
-    # TENTAR FAZER ESSA SOLUÇÃO, UTILIZANDO UMA FORMA DE REMOVER O ELEMENTO DA LISTA E INSERIR NOVAMENT
-    if(level == 0):
-        [ramifica, otimo] = optimalSolution(solver, y, x, data, novasRes, level)
-        print('LEVEL: ', level)
-        print('ITENS:', itens)
-        print("NOVAS RES: ", novasRes)
-        print("Otimo: ", otimo)
-        print()
-        if(ramifica == True):
-            for i in range(len(itens)):
-                otimo = branchAndBound(solver, variablesAmount, otimo, level+1, itens, y, x, data, ramifica, novasRes, i)
-
+                        bin_items.append(i)
+                        bin_weight += self.data['weights'][i]
+                    print()
+                    if bin_weight >= 0:
+                        num_bins += 1
+                        print('Bin number', j)
+                        print('  Items packed:', bin_items)
+                        print('  Total weight:', bin_weight)
+                        print()
+            print()
+            print('Number of bins used:', num_bins)
+            print('Time = ', self.solver.WallTime(), ' milliseconds')
         else:
-            return otimo
+            print('The problem does not have an optimal solution.\n')
 
-    elif (level < variablesAmount):
-        [ramifica, otimo] = optimalSolution(solver, y, x, data, novasRes, level)
-        if(ramifica == True):
-            i = 0
-            while(i < len(itens)):
-                aux = itens[i]
-                novasRes[level-1] = aux
-                del itens[i]
-                print('LEVEL: ', level)
-                print('ITENS:', itens)
-                print("NOVAS RES: ", novasRes)
-                print("Otimo: ", otimo)
-                print()
-                otimo = branchAndBound(solver, variablesAmount, otimo, level+1, itens, y, x, data, ramifica, novasRes, i)
-                itens.insert(i, aux)
-                novasRes[level] = -1
-                i += 1
-    else:
-        novasRes[level-1] = itens[0]
-        print('LEVEL: ', level)
-        print('ITENS:', itens)
-        print("NOVAS RES: ", novasRes)
-        print("iTem: ", i)
-        print("Otimo: ", otimo)
-        print()
-        [ramifica, otimo] = optimalSolution(solver, y, x, data, novasRes, level)
-        return otimo
+def verificaRamificacao():
 
-    return otimo;
+    return
+
+def branchAndBound(level, x, y, otimo , variablesAmount, solver, data):
+    p1 = Pack(level, x, y, otimo, variablesAmount, solver, data)
+
+    queue = deque()
+    queue.append(p1)
+
+
+    while(len(queue) != 0):
+        u = queue.popleft()
+        print(u.maxLevel)
+
+        if(u.level == u.maxLevel):
+            continue
+
+        for i in range(len(u.itens)):
+            v = Pack(level, x, y, otimo, variablesAmount, solver, data)
+            
+
+
+
+
+
+
+
+    return
