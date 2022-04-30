@@ -1,6 +1,6 @@
-
 from collections import deque
 from ortools.linear_solver import pywraplp
+
 
 class Pack:
     def __init__(self, level, x, y, otimo, variablesAmount, solver, data):
@@ -15,50 +15,55 @@ class Pack:
         self.solver = solver
         self.data = data
 
-    def optimalSolution(self):
-
-        # Função objetiva. Minimza o numero de caminhões utilizados.
+    def verificaSeOsItensEstaoInteiros(self):
         i = 0
-        while(i < len(self.novasRes) and self.novasRes[i] != -1):
-            print("AAAAAAAAAAAAAA: %d e %d" % (self.level, self.novasRes[i]))
-            self.solver.Add(self.x[self.novasRes[i], self.level] == 1)
-            i += 1
+        j = 0
+        k = 0
+        while(k < len(self.x)):
+            if(type(self.x[i,j].solution_value()) != int):
+                return False
+            k += 1
 
+        return True
+                
+
+    def bound(self):
+        bd = True
+
+        # Adicionar restrições extras
+
+        # Bound
         self.solver.Minimize(self.solver.Sum([self.y[j] for j in self.data['trucks']]))
 
         status = self.solver.Solve()
-
         if status == pywraplp.Solver.OPTIMAL:
-            num_bins = 0.
-            for j in self.data['trucks']:
-                # print(f"y[{j}]",y[j].solution_value())
-                if self.y[j].solution_value() >= 0:
-                    bin_items = []
-                    bin_weight = 0
-                    for i in self.data['items']:
-                        # print(f"x[{i}, {j}]",x[i,j].solution_value())
+            # Se não tivermos um resultado ótimo inteiro, ramificamos mais
+            if(type(bd) == int):
+                    bd = False
 
-                        bin_items.append(i)
-                        bin_weight += self.data['weights'][i]
-                    print()
-                    if bin_weight >= 0:
-                        num_bins += 1
-                        print('Bin number', j)
-                        print('  Items packed:', bin_items)
-                        print('  Total weight:', bin_weight)
-                        print()
-            print()
-            print('Number of bins used:', num_bins)
-            print('Time = ', self.solver.WallTime(), ' milliseconds')
+            bd = self.verificaSeOsItensEstaoInteiros()
         else:
-            print('The problem does not have an optimal solution.\n')
+            # Se cairmos em um caso em que não existe nenhuma solução viável, não limitamos mais
+            self.otimo = -1
+            bd = False
+        
+        # Se for False, ramifica. Se for True não ramifica
+        return bd
 
-def verificaRamificacao():
+    def ramifica(self, SOLUCAO_OTIMA):
+        ramifica = False
 
-    return
+        if(not self.bound()):
+            ramifica = True
+        else:
+            if(SOLUCAO_OTIMA < self.otimo):
+                self.otimo = SOLUCAO_OTIMA
+
+        return ramifica
 
 def branchAndBound(level, x, y, otimo , variablesAmount, solver, data):
     p1 = Pack(level, x, y, otimo, variablesAmount, solver, data)
+    SOLUCAO_OTIMA = -1
 
     queue = deque()
     queue.append(p1)
@@ -66,19 +71,20 @@ def branchAndBound(level, x, y, otimo , variablesAmount, solver, data):
 
     while(len(queue) != 0):
         u = queue.popleft()
-        print(u.maxLevel)
 
         if(u.level == u.maxLevel):
             continue
 
-        for i in range(len(u.itens)):
-            v = Pack(level, x, y, otimo, variablesAmount, solver, data)
-            
-
-
-
-
-
-
-
-    return
+        if(u.ramifica(SOLUCAO_OTIMA)):
+            for i in range(len(u.itens)):
+                v = Pack(u.level+1, x, y, otimo, variablesAmount, solver, data)
+                aux = v.itens[i]
+                del v.itens[i]
+                v.novasRes[u.level] = aux
+                print("LEVEL: ", v.level)
+                print("ITENS: ", v.itens)
+                print("novasRes: ", v.novasRes)
+                print("\n\n")
+                queue.append(v)
+                
+    return SOLUCAO_OTIMA;
