@@ -9,7 +9,7 @@ def main():
     otimo = 0
     level = 0
 
-    [solver, variablesAmount, y, x, data] = sp.restricoes(variablesAmount)
+    [solver, variablesAmount, y, x, data] = sp.restricoes(variablesAmount, None, None, None, level)
 
     result = bd.branchAndBound(level, x, y, otimo, variablesAmount, solver, data)
     print(result)

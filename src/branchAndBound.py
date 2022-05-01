@@ -1,15 +1,16 @@
 from collections import deque
+import simplex as sp
 from ortools.linear_solver import pywraplp
 
 
 class Pack:
-    def __init__(self, level, x, y, otimo, variablesAmount, solver, data):
+    def __init__(self, level, x, y, otimo, variablesAmount, solver, data, novasRes, itens):
         self.level = level
         self.maxLevel = variablesAmount
         self.x = x
         self.y = y
-        self.novasRes = [ -1 for _ in range(variablesAmount)]
-        self.itens = [(a) for a in range(variablesAmount) ]
+        self.novasRes = [ elem for elem in novasRes]
+        self.itens = [item for item in itens ]
         self.otimo = otimo
         self.variablesAmount = variablesAmount
         self.solver = solver
@@ -30,21 +31,27 @@ class Pack:
     def bound(self):
         bd = True
 
-        # Adicionar restrições extras
-
         # Bound
-        self.solver.Minimize(self.solver.Sum([self.y[j] for j in self.data['trucks']]))
+        if(self.level > 0):
+            [self.solver, self.variablesAmount, self.y, self.x, self.data] = sp.restricoes(self.variablesAmount, self.novasRes, self.itens, self.data, self.level)
+            status = self.solver.Solve()
+        else:
+            status = self.solver.Solve()
 
-        status = self.solver.Solve()
         if status == pywraplp.Solver.OPTIMAL:
+            print("EXISTE SOLUCAO ÓTIMA VIÁVEL")
+            self.otimo = self.solver.Objective().Value()
+
             # Se não tivermos um resultado ótimo inteiro, ramificamos mais
-            if(type(bd) == int):
+            if(type(self.otimo) == int):
                     bd = False
 
             bd = self.verificaSeOsItensEstaoInteiros()
+
         else:
             # Se cairmos em um caso em que não existe nenhuma solução viável, não limitamos mais
-            self.otimo = -1
+            print("NÃO EXISTE SOLUCAO VIÁVEL\n\n\n\n")
+            self.otimo = -2
             bd = False
         
         # Se for False, ramifica. Se for True não ramifica
@@ -62,29 +69,32 @@ class Pack:
         return ramifica
 
 def branchAndBound(level, x, y, otimo , variablesAmount, solver, data):
-    p1 = Pack(level, x, y, otimo, variablesAmount, solver, data)
+    novasRes = [ -1 for _ in range(variablesAmount)]
+    itens = [(a) for a in range(variablesAmount) ]
+    p1 = Pack(level, x, y, otimo, variablesAmount, solver, data, novasRes, itens)
     SOLUCAO_OTIMA = -1
 
     queue = deque()
     queue.append(p1)
 
 
+    id = 0
     while(len(queue) != 0):
         u = queue.popleft()
 
-        if(u.level == u.maxLevel):
-            continue
-
         if(u.ramifica(SOLUCAO_OTIMA)):
             for i in range(len(u.itens)):
-                v = Pack(u.level+1, x, y, otimo, variablesAmount, solver, data)
+                v = Pack(u.level+1, x, y, otimo, variablesAmount, solver, data, u.novasRes, u.itens)
                 aux = v.itens[i]
                 del v.itens[i]
                 v.novasRes[u.level] = aux
-                print("LEVEL: ", v.level)
-                print("ITENS: ", v.itens)
-                print("novasRes: ", v.novasRes)
-                print("\n\n")
                 queue.append(v)
                 
+        print("LEVEL: ", u.level)
+        print("id: ", id)
+        print("ITENS: ", u.itens)
+        print("novasRes: ", u.novasRes)
+        print("otimo: ", u.otimo)
+        print("\n\n")
+        id += 1
     return SOLUCAO_OTIMA;
