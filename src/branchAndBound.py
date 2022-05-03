@@ -26,7 +26,6 @@ class Pack:
             k += 1
 
         return True
-                
 
     def bound(self):
         bd = True
@@ -34,12 +33,15 @@ class Pack:
         # Bound
         if(self.level > 0):
             [self.solver, self.variablesAmount, self.y, self.x, self.data] = sp.restricoes(self.variablesAmount, self.novasRes, self.itens, self.data, self.level)
+
+            # Limitante
+            self.solver.Minimize(self.solver.Sum([self.y[j] for j in self.data['trucks']]))
             status = self.solver.Solve()
         else:
             status = self.solver.Solve()
 
         if status == pywraplp.Solver.OPTIMAL:
-            print("EXISTE SOLUCAO ÓTIMA VIÁVEL")
+            # print("EXISTE SOLUCAO ÓTIMA VIÁVEL")
             self.otimo = self.solver.Objective().Value()
 
             # Se não tivermos um resultado ótimo inteiro, ramificamos mais
@@ -65,8 +67,31 @@ class Pack:
         else:
             if(SOLUCAO_OTIMA < self.otimo):
                 self.otimo = SOLUCAO_OTIMA
+                ramifica = True
 
         return ramifica
+
+    def verificaParesOrdenados(self, v, queue):
+        if(v.level > 0):
+            pairs = v.data["ordered_pairs"]
+            print(pairs)
+            for pair in pairs:
+                i = 0
+                indicePair1 = -1
+                indicePair2 = -1
+                while(i < len(v.novasRes)):
+                    if(pair[1] == v.novasRes[i]):
+                        indicePair1 = i
+                    if(pair[0] == v.novasRes[i]):
+                        indicePair2 = i
+
+                    i += 1
+
+                if(indicePair1 - indicePair2 > 0 and indicePair2 != -1 and indicePair1 != -1):
+                    queue.append(v)
+                    return queue;
+
+        return queue
 
 def branchAndBound(level, x, y, otimo , variablesAmount, solver, data):
     novasRes = [ -1 for _ in range(variablesAmount)]
@@ -76,7 +101,6 @@ def branchAndBound(level, x, y, otimo , variablesAmount, solver, data):
 
     queue = deque()
     queue.append(p1)
-
 
     id = 0
     while(len(queue) != 0):
@@ -88,7 +112,7 @@ def branchAndBound(level, x, y, otimo , variablesAmount, solver, data):
                 aux = v.itens[i]
                 del v.itens[i]
                 v.novasRes[u.level] = aux
-                queue.append(v)
+                u.verificaParesOrdenados(v, queue)
                 
         print("LEVEL: ", u.level)
         print("id: ", id)

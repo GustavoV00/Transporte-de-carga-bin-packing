@@ -12,7 +12,10 @@ def main():
     [solver, variablesAmount, y, x, data] = sp.restricoes(variablesAmount, None, None, None, level)
 
     result = bd.branchAndBound(level, x, y, otimo, variablesAmount, solver, data)
-    print(result)
+    if result == -1:
+        print("Não foi encontrado nenhum resultado otimo inteiro")
+    else:
+        print(result)
 
 if __name__ == "__main__":
     main()

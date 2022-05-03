@@ -38,6 +38,7 @@ def restricoes(variablesAmount, novasRes, itens, data, level):
     # Faz a modelagem dos dados dentro de um dicionário.
     if(novasRes == None and itens == None and data == None):
         [data, variablesAmount] = create_model(variablesAmount)
+        print(data)
 
     # Escolhe o resolvedor, o GLOP é um desses resolvedores. 
     solver = pywraplp.Solver('trucksPacking',
@@ -80,10 +81,9 @@ def restricoes(variablesAmount, novasRes, itens, data, level):
         # Adicionar restrições extras de forma dinamica, de acordo com o level da árvore
         i = 0
         for l in range(level):
-            print("AAAAAAAAAAAAAA: x[%d, %d]" % (novasRes[i], l))
+           # print("AAAAAAAAAAAAAA: x[%d, %d]" % (novasRes[i], l))
             solver.Add(x[novasRes[i], l] == 1)
             i += 1
 
-    solver.Minimize(solver.Sum([y[j] for j in data['trucks']]))
 
     return [solver, variablesAmount, y, x, data];
