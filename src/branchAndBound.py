@@ -17,85 +17,73 @@ class Pack:
         self.data = data
 
     def verificaSeOsItensEstaoInteiros(self):
-        i = 0
-        j = 0
-        k = 0
-        while(k < len(self.x)):
-            if(type(self.x[i,j].solution_value()) != int):
-                return False
-            k += 1
+        for i in range(len(self.x)):
+            for j in range(len(self.x)):
+                if(type(self.x[i, j].solution_value()) != int):
+                    return False
 
         return True
 
     def bound(self):
+        # Indica que o resultado encontrado foi inteiro
+        # E os x_i foram todos inteiros
         bd = True
 
         # Bound
+        ordenado = None
         if(self.level > 0):
-            [self.solver, self.variablesAmount, self.y, self.x, self.data] = sp.restricoes(self.variablesAmount, self.novasRes, self.itens, self.data, self.level)
+            [self.solver, self.variablesAmount, self.y, self.x, self.data, ordenado] = sp.restricoes(self.variablesAmount, self.novasRes, self.itens, self.data, self.level)
 
-            # Limitante
+        # Limitante
+        if(ordenado == True or self.level == 0):
             self.solver.Minimize(self.solver.Sum([self.y[j] for j in self.data['trucks']]))
             status = self.solver.Solve()
-        else:
-            status = self.solver.Solve()
 
-        if status == pywraplp.Solver.OPTIMAL:
-            # print("EXISTE SOLUCAO ÓTIMA VIÁVEL")
-            self.otimo = self.solver.Objective().Value()
+            if status == pywraplp.Solver.OPTIMAL:
+                # print("EXISTE SOLUCAO ÓTIMA VIÁVEL")
+                self.otimo = self.solver.Objective().Value()
 
-            # Se não tivermos um resultado ótimo inteiro, ramificamos mais
-            if(type(self.otimo) == int):
+
+                # Se existir algum numero fracionário, continuamos a ramificar 
+                bd = self.verificaSeOsItensEstaoInteiros()
+
+                # Se não tivermos um resultado ótimo inteiro, ramificamos mais
+                if(type(self.otimo) == int):
                     bd = False
 
-            bd = self.verificaSeOsItensEstaoInteiros()
+            else:
+                # Se cairmos em um caso em que não existe nenhuma solução viável, não limitamos mais
+                print("NÃO EXISTE SOLUCAO VIÁVEL\n\n\n\n")
+                self.otimo = -2
+                bd = False
 
-        else:
-            # Se cairmos em um caso em que não existe nenhuma solução viável, não limitamos mais
-            print("NÃO EXISTE SOLUCAO VIÁVEL\n\n\n\n")
-            self.otimo = -2
-            bd = False
-        
+
         # Se for False, ramifica. Se for True não ramifica
+        # print(bd)
         return bd
 
     def ramifica(self, SOLUCAO_OTIMA):
-        ramifica = False
+        ramifica = True
 
-        if(not self.bound()):
-            ramifica = True
-        else:
-            if(SOLUCAO_OTIMA < self.otimo):
-                self.otimo = SOLUCAO_OTIMA
-                ramifica = True
 
-        return ramifica
+        
+        # Se bound() devolver falso, significa que é preciso ramificar
+        # Se bound() devolver verdadeiro, encontrei um resultado ótimo.
+        if(self.bound() == True):
+            ramifica = False
 
-    def verificaParesOrdenados(self, v, queue):
-        if(v.level > 0):
-            pairs = v.data["ordered_pairs"]
-            print(pairs)
-            for pair in pairs:
-                i = 0
-                indicePair1 = -1
-                indicePair2 = -1
-                while(i < len(v.novasRes)):
-                    if(pair[1] == v.novasRes[i]):
-                        indicePair1 = i
-                    if(pair[0] == v.novasRes[i]):
-                        indicePair2 = i
+        if(self.level == 0):
+            self.otimo = SOLUCAO_OTIMA
+            
+        if(self.otimo < SOLUCAO_OTIMA and type(self.otimo) == int):
+            SOLUCAO_OTIMA = self.otimo
+            ramifica = False
 
-                    i += 1
-
-                if(indicePair1 - indicePair2 > 0 and indicePair2 != -1 and indicePair1 != -1):
-                    queue.append(v)
-                    return queue;
-
-        return queue
+        return [ramifica, SOLUCAO_OTIMA]
 
 def branchAndBound(level, x, y, otimo , variablesAmount, solver, data):
     novasRes = [ -1 for _ in range(variablesAmount)]
-    itens = [(a) for a in range(variablesAmount) ]
+    itens = [(a+1) for a in range(variablesAmount) ]
     p1 = Pack(level, x, y, otimo, variablesAmount, solver, data, novasRes, itens)
     SOLUCAO_OTIMA = -1
 
@@ -106,13 +94,14 @@ def branchAndBound(level, x, y, otimo , variablesAmount, solver, data):
     while(len(queue) != 0):
         u = queue.popleft()
 
-        if(u.ramifica(SOLUCAO_OTIMA)):
+        [ramifica, SOLUCAO_OTIMA] = u.ramifica(SOLUCAO_OTIMA)
+        if(ramifica == True):
             for i in range(len(u.itens)):
-                v = Pack(u.level+1, x, y, otimo, variablesAmount, solver, data, u.novasRes, u.itens)
+                v = Pack(u.level+1, x, y, otimo, variablesAmount, solver, u.data, u.novasRes, u.itens)
                 aux = v.itens[i]
                 del v.itens[i]
                 v.novasRes[u.level] = aux
-                u.verificaParesOrdenados(v, queue)
+                queue.append(v)
                 
         print("LEVEL: ", u.level)
         print("id: ", id)

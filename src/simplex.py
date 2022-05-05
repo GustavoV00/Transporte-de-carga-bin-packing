@@ -77,13 +77,51 @@ def restricoes(variablesAmount, novasRes, itens, data, level):
             sum(x[(i, j)] * data['weights'][i] for i in data['items'])  <= data["trucks_capacity"]*y[j]
         )
 
+    ordenado = True
     if(novasRes != None and itens != None and data != None):
         # Adicionar restrições extras de forma dinamica, de acordo com o level da árvore
         i = 0
+        ordenado = verificaParesOrdenados(novasRes, solver, data, level, x)
         for l in range(level):
            # print("AAAAAAAAAAAAAA: x[%d, %d]" % (novasRes[i], l))
-            solver.Add(x[novasRes[i], l] == 1)
+            if(ordenado == True):
+                print("DENTRO DO TRUE")
+                solver.Add(x[novasRes[i]-1, l] == 1)
             i += 1
 
 
-    return [solver, variablesAmount, y, x, data];
+    return [solver, variablesAmount, y, x, data, ordenado]
+
+def verificaParesOrdenados(res, solver, data, level, x):
+    ordenado = True
+    if(level > 0):
+        pairs = data["ordered_pairs"]
+        for pair in pairs:
+            print(pair)
+            indice1 = -1
+            indice2 = -1
+            for i in range(len(res)):
+                if(res[i] == pair[0]):
+                    indice1 = i
+
+                if(res[i] == pair[1]):
+                    indice2 = i
+
+            print("indice1 ", indice1)
+            print("indice2 ", indice2)
+            if(indice1 < indice2 and indice1 != -1 and indice2 != -1):
+                # Talvez tenho que colocar um +1 aqui
+                for k in range(indice1):
+                    print("ENTREI AQUI 1\n")
+                    solver.Add(x[res[indice2]-1, k] == 0)
+
+            if((indice2 != -1 and indice1 == -1)):
+                print("ENTREI AQUI 2\n")
+                ordenado = False
+                return ordenado
+
+            if(indice2 < indice1 and indice1 != -1 and indice2 != -1):
+                ordenado = False
+                return ordenado
+
+        return ordenado
