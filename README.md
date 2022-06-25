@@ -1,5 +1,4 @@
 Gustavo Valente Nunes
-GRR 20182557
 
 Introdução:
   O leiame é referente ao trabalho da disciplina de otimização. Nesse trabalho foi feito uma pesquisa em cima do problema de envio de cargas. Desde a criação da modelagem do problema em forma de programação linear, até encontrar a sua solução.
