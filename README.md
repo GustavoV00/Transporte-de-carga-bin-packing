@@ -1,4 +1,5 @@
-Gustavo Valente Nunes
+# Relatório completo
+  Caso seja necessário mais informações, tem um pdf chamado `GustavoValenteRelatorio.pdf` com as informações detalhadas da implementação do trabalho em formato de artigo acadêmico.
 
 # Introdução
   O leiame é referente ao trabalho da disciplina de otimização. Nesse trabalho foi feito uma pesquisa em cima do problema de envio de cargas. Desde a criação da modelagem do problema em forma de programação linear, até encontrar a sua solução.
